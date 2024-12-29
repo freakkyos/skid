@@ -813,14 +813,15 @@ run(function()
 	local CircleObject
 	local RightClick
 	local moveConst = Vector2.new(1, 0.77) * math.rad(0.5)
-	
+	local screenCenter = Vector2.new(workspace.CurrentCamera.ViewportSize.X / 2, workspace.CurrentCamera.ViewportSize.Y / 2)
+
 	local function wrapAngle(num)
 		num = num % math.pi
 		num -= num >= (math.pi / 2) and math.pi or 0
 		num += num < -(math.pi / 2) and math.pi or 0
 		return num
 	end
-	
+
 	AimAssist = vape.Categories.Combat:CreateModule({
 		Name = 'AimAssist',
 		Function = function(callback)
@@ -832,7 +833,7 @@ run(function()
 				local rightClicked = not RightClick.Enabled or inputService:IsMouseButtonPressed(1)
 				AimAssist:Clean(runService.RenderStepped:Connect(function(dt)
 					if CircleObject then 
-						CircleObject.Position = inputService:GetMouseLocation() 
+						CircleObject.Position = screenCenter -- Keep FOV fixed at screen center
 					end
 					
 					if rightClicked and not vape.gui.ScaledGui.ClickGui.Visible then
@@ -844,7 +845,7 @@ run(function()
 							Wallcheck = Targets.Walls.Enabled,
 							Origin = gameCamera.CFrame.Position
 						})
-	
+
 						if ent then 
 							local facing = gameCamera.CFrame.LookVector
 							local new = (ent[Part.Value].Position - gameCamera.CFrame.Position).Unit
@@ -861,7 +862,7 @@ run(function()
 						end
 					end
 				end))
-	
+
 				if RightClick.Enabled then 
 					AimAssist:Clean(inputService.InputBegan:Connect(function(input)
 						if input.UserInputType == Enum.UserInputType.MouseButton2 then 
@@ -908,7 +909,7 @@ run(function()
 				CircleObject = Drawing.new('Circle')
 				CircleObject.Filled = CircleFilled.Enabled
 				CircleObject.Color = Color3.fromHSV(CircleColor.Hue, CircleColor.Sat, CircleColor.Value)
-				CircleObject.Position = vape.gui.AbsoluteSize / 2
+				CircleObject.Position = screenCenter -- Fixed FOV center
 				CircleObject.Radius = FOV.Value
 				CircleObject.NumSides = 100
 				CircleObject.Transparency = 1 - CircleTransparency.Value
@@ -968,7 +969,6 @@ run(function()
 		end
 	})
 end)
-	
 run(function()
 	local AutoClicker
 	local Mode
