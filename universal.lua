@@ -1249,8 +1249,8 @@ run(function()
 
 				repeat
 					if CircleObject then
-						CircleObject.Position = inputService:GetMouseLocation()
-					end
+    CircleObject.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+end
 					if AutoFire.Enabled then
 						local origin = AutoFireMode.Value == 'Camera' and gameCamera.CFrame or entitylib.isAlive and entitylib.character.RootPart.CFrame or CFrame.identity
 						local ent = entitylib['Entity'..Mode.Value]({
