@@ -813,7 +813,7 @@ run(function()
 	local CircleObject
 	local RightClick
 	local moveConst = Vector2.new(1, 0.77) * math.rad(0.5)
-	local screenCenter = Vector2.new(workspace.CurrentCamera.ViewportSize.X / 2, workspace.CurrentCamera.ViewportSize.Y / 2)
+	local camera = workspace.CurrentCamera
 
 	local function wrapAngle(num)
 		num = num % math.pi
@@ -833,22 +833,23 @@ run(function()
 				local rightClicked = not RightClick.Enabled or inputService:IsMouseButtonPressed(1)
 				AimAssist:Clean(runService.RenderStepped:Connect(function(dt)
 					if CircleObject then 
-						CircleObject.Position = screenCenter -- Keep FOV fixed at screen center
+						CircleObject.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2) -- Keep FOV fixed at screen center
 					end
 					
 					if rightClicked and not vape.gui.ScaledGui.ClickGui.Visible then
-						ent = entitylib.EntityMouse({
+						ent = entitylib.EntityScreen({
 							Range = FOV.Value,
 							Part = Part.Value,
 							Players = Targets.Players.Enabled,
 							NPCs = Targets.NPCs.Enabled,
 							Wallcheck = Targets.Walls.Enabled,
-							Origin = gameCamera.CFrame.Position
+							Origin = camera.CFrame.Position,
+							CenterScreen = true -- Ensures target acquisition is from the center
 						})
 
 						if ent then 
-							local facing = gameCamera.CFrame.LookVector
-							local new = (ent[Part.Value].Position - gameCamera.CFrame.Position).Unit
+							local facing = camera.CFrame.LookVector
+							local new = (ent[Part.Value].Position - camera.CFrame.Position).Unit
 							new = new == new and new or Vector3.zero
 							
 							if new ~= Vector3.zero then 
@@ -909,7 +910,7 @@ run(function()
 				CircleObject = Drawing.new('Circle')
 				CircleObject.Filled = CircleFilled.Enabled
 				CircleObject.Color = Color3.fromHSV(CircleColor.Hue, CircleColor.Sat, CircleColor.Value)
-				CircleObject.Position = screenCenter -- Fixed FOV center
+				CircleObject.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2) -- Fixed FOV center
 				CircleObject.Radius = FOV.Value
 				CircleObject.NumSides = 100
 				CircleObject.Transparency = 1 - CircleTransparency.Value
@@ -969,6 +970,7 @@ run(function()
 		end
 	})
 end)
+							
 run(function()
 	local AutoClicker
 	local Mode
