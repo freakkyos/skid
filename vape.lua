@@ -1395,14 +1395,20 @@ run(function()
         end,
         Visible = false
     })
-    CircleTransparency = SilentAim:CreateSlider({
-        Name = 'Transparency',
-        Min = 0,
-        Max = 1,
-        Decimal = 10,
-        Default = 0.5,
-        Function = function(val)
-	
+   CircleTransparency = SilentAim:CreateSlider({
+    Name = 'Transparency',
+    Min = 0,
+    Max = 1,
+    Decimal = 10,
+    Default = 0.5,
+    Function = function(val)
+        -- Assuming the slider value (val) is used to update transparency or something related
+        print("Transparency value: " .. val)
+        -- You can use the value here to modify your circle's transparency
+        -- For example:
+        -- circle.Transparency = val
+    end
+})  -- End of the CreateSlider function
 run(function()
 	local TriggerBot
 	local Targets
