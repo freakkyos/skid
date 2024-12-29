@@ -1,21 +1,4 @@
--- Save the original loadstring function before overwriting it
-local originalLoadstring = loadstring
 
--- Redefine loadstring with error handling
-local loadstring = function(...)
-    local res, err = pcall(originalLoadstring, ...)  -- Use pcall to safely call the original loadstring
-    if not res and vape then
-        -- If there's an error and vape is available, create a notification
-        vape:CreateNotification('Vape', 'Failed to load: ' .. err, 30, 'alert')
-    end
-    return res and err or nil  -- Return the result or nil if an error occurred
-end
-local isfile = isfile or function(file)
-	local suc, res = pcall(function()
-		return readfile(file)
-	end)
-	return suc and res ~= nil and res ~= ''
-end
 local function downloadFile(path, func)
 	if not isfile(path) then
 		local suc, res = pcall(function()
