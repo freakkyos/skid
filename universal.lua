@@ -814,6 +814,8 @@ run(function()
 	local RightClick
 	local moveConst = Vector2.new(1, 0.77) * math.rad(0.5)
 	local camera = workspace.CurrentCamera
+	local inputService = game:GetService("UserInputService")
+	local runService = game:GetService("RunService")
 
 	local function wrapAngle(num)
 		num = num % math.pi
@@ -823,40 +825,42 @@ run(function()
 	end
 
 	AimAssist = vape.Categories.Combat:CreateModule({
-		Name = 'AimAssist',
+		Name = "AimAssist",
 		Function = function(callback)
 			if CircleObject then
 				CircleObject.Visible = callback
 			end
-			if callback then 
-				local ent
-				local rightClicked = not RightClick.Enabled or inputService:IsMouseButtonPressed(1)
+
+			if callback then
+				local entity
+				local rightClicked = not RightClick.Enabled or inputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
 				AimAssist:Clean(runService.RenderStepped:Connect(function(dt)
-					if CircleObject then 
-						CircleObject.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2) -- Keep FOV fixed at screen center
+					if CircleObject then
+						-- Fix Circle Position to the Center of the Screen
+						CircleObject.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
 					end
-					
+
 					if rightClicked and not vape.gui.ScaledGui.ClickGui.Visible then
-						ent = entitylib.EntityScreen({
+						-- Target Acquisition Logic
+						entity = entitylib.EntityScreen({
 							Range = FOV.Value,
 							Part = Part.Value,
 							Players = Targets.Players.Enabled,
 							NPCs = Targets.NPCs.Enabled,
 							Wallcheck = Targets.Walls.Enabled,
 							Origin = camera.CFrame.Position,
-							CenterScreen = true -- Ensures target acquisition is from the center
 						})
 
-						if ent then 
+						if entity then
 							local facing = camera.CFrame.LookVector
-							local new = (ent[Part.Value].Position - camera.CFrame.Position).Unit
-							new = new == new and new or Vector3.zero
-							
-							if new ~= Vector3.zero then 
-								local diffYaw = wrapAngle(math.atan2(facing.X, facing.Z) - math.atan2(new.X, new.Z))
-								local diffPitch = math.asin(facing.Y) - math.asin(new.Y)
-								local angle = Vector2.new(diffYaw, diffPitch) // (moveConst * UserSettings():GetService('UserGameSettings').MouseSensitivity)
-								
+							local targetPosition = (entity[Part.Value].Position - camera.CFrame.Position).Unit
+							targetPosition = targetPosition == targetPosition and targetPosition or Vector3.zero
+
+							if targetPosition ~= Vector3.zero then
+								local diffYaw = wrapAngle(math.atan2(facing.X, facing.Z) - math.atan2(targetPosition.X, targetPosition.Z))
+								local diffPitch = math.asin(facing.Y) - math.asin(targetPosition.Y)
+								local angle = Vector2.new(diffYaw, diffPitch) / (moveConst * UserSettings():GetService("UserGameSettings").MouseSensitivity)
+
 								angle *= math.min(Speed.Value * dt, 1)
 								mousemoverel(angle.X, angle.Y)
 							end
@@ -864,30 +868,31 @@ run(function()
 					end
 				end))
 
-				if RightClick.Enabled then 
+				if RightClick.Enabled then
 					AimAssist:Clean(inputService.InputBegan:Connect(function(input)
-						if input.UserInputType == Enum.UserInputType.MouseButton2 then 
-							ent = nil
+						if input.UserInputType == Enum.UserInputType.MouseButton2 then
+							entity = nil
 							rightClicked = true
 						end
 					end))
 					AimAssist:Clean(inputService.InputEnded:Connect(function(input)
-						if input.UserInputType == Enum.UserInputType.MouseButton2 then 
+						if input.UserInputType == Enum.UserInputType.MouseButton2 then
 							rightClicked = false
 						end
 					end))
 				end
 			end
 		end,
-		Tooltip = 'Smoothly aims to closest valid target'
+		Tooltip = "Smoothly aims to closest valid target",
 	})
-	Targets = AimAssist:CreateTargets({Players = true})
+
+	Targets = AimAssist:CreateTargets({ Players = true })
 	Part = AimAssist:CreateDropdown({
-		Name = 'Part',
-		List = {'RootPart', 'Head'}
+		Name = "Part",
+		List = { "RootPart", "Head" },
 	})
 	FOV = AimAssist:CreateSlider({
-		Name = 'FOV',
+		Name = "FOV",
 		Min = 0,
 		Max = 1000,
 		Default = 100,
@@ -895,19 +900,19 @@ run(function()
 			if CircleObject then
 				CircleObject.Radius = val
 			end
-		end
+		end,
 	})
 	Speed = AimAssist:CreateSlider({
-		Name = 'Speed',
+		Name = "Speed",
 		Min = 0,
 		Max = 30,
-		Default = 15
+		Default = 15,
 	})
 	AimAssist:CreateToggle({
-		Name = 'Range Circle',
+		Name = "Range Circle",
 		Function = function(callback)
 			if callback then
-				CircleObject = Drawing.new('Circle')
+				CircleObject = Drawing.new("Circle")
 				CircleObject.Filled = CircleFilled.Enabled
 				CircleObject.Color = Color3.fromHSV(CircleColor.Hue, CircleColor.Sat, CircleColor.Value)
 				CircleObject.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2) -- Fixed FOV center
@@ -924,20 +929,20 @@ run(function()
 			CircleColor.Object.Visible = callback
 			CircleTransparency.Object.Visible = callback
 			CircleFilled.Object.Visible = callback
-		end
+		end,
 	})
 	CircleColor = AimAssist:CreateColorSlider({
-		Name = 'Circle Color', 
+		Name = "Circle Color",
 		Function = function(hue, sat, val)
 			if CircleObject then
 				CircleObject.Color = Color3.fromHSV(hue, sat, val)
 			end
-		end, 
-		Darker = true, 
-		Visible = false
+		end,
+		Darker = true,
+		Visible = false,
 	})
 	CircleTransparency = AimAssist:CreateSlider({
-		Name = 'Transparency',
+		Name = "Transparency",
 		Min = 0,
 		Max = 1,
 		Decimal = 10,
@@ -948,26 +953,26 @@ run(function()
 			end
 		end,
 		Darker = true,
-		Visible = false
+		Visible = false,
 	})
 	CircleFilled = AimAssist:CreateToggle({
-		Name = 'Circle Filled', 
+		Name = "Circle Filled",
 		Function = function(callback)
 			if CircleObject then
 				CircleObject.Filled = callback
 			end
-		end, 
-		Darker = true, 
-		Visible = false
+		end,
+		Darker = true,
+		Visible = false,
 	})
 	RightClick = AimAssist:CreateToggle({
-		Name = 'Require right click',
+		Name = "Require right click",
 		Function = function()
-			if AimAssist.Enabled then 
+			if AimAssist.Enabled then
 				AimAssist:Toggle()
 				AimAssist:Toggle()
 			end
-		end
+		end,
 	})
 end)
 							
